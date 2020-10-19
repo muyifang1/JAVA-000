@@ -17,9 +17,9 @@ public class HelloClassLoader extends ClassLoader {
     @Override
     public Class<?> findClass(String name) throws ClassNotFoundException {
         // 读取 Hello.xlass 文件
-        //File file = new File(getClass().getResource("/jvm/demo/hello/classloader/Hello.xlass").getPath());
+        File file = new File(getClass().getResource("Hello.xlass").getPath());
+        // File file = new File("C:\\Git_Hub\\JAVA-000\\Week_01\\src\\jvm\\demo\\hello\\classloader\\Hello.xlass");
 
-        File file = new File("C:\\Git_Hub\\JAVA-000\\Week_01\\src\\jvm\\demo\\hello\\classloader\\Hello.xlass");
         byte[] bytes = new byte[Long.valueOf(file.length()).intValue()];
 
         try {
@@ -44,12 +44,12 @@ public class HelloClassLoader extends ClassLoader {
 
     public static void main(String[] args) {
 
-        // System.out.println("getClass().getResource(\"Hello.xlass\") = " + getClass().getResource("Hello.xlass"));
-        // HelloClassLoader demo = new HelloClassLoader();
+        HelloClassLoader demo = new HelloClassLoader();
+        demo.printUrl("Hello.xlass");
 
         try {
             // 创建 Hello.xlass 对象
-            Class<?> helloClass = new HelloClassLoader().findClass("Hello");
+            Class<?> helloClass = demo.findClass("Hello");
             Object hello = helloClass.getDeclaredConstructor().newInstance();
             // 执行 hello 方法
             Method helloMethod = helloClass.getMethod("hello");
