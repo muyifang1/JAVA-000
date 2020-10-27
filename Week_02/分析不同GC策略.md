@@ -36,11 +36,11 @@ Heap
 ```
 ###### 分析一次GC行为 ######
 `[GC (Allocation Failure) [PSYoungGen: 64512K->10236K(74752K)] 64512K->26418K(245760K), 0.0067054 secs]`
-> 第一次 MinorGC 年轻代堆内存从 64512K 降低到 10236K (年轻代总内存74752K) 老年代堆内存从 64512K 降低到 26418K(老年代总共245760K) 本次GC执行时间 0.0067054 secs
-> Allocation Failure 表示GC原因，分配空间不足
-> Full GC (Ergonomics)
-> [Times: user=0.06 sys=0.31, real=0.05 secs]
-  这个是CPU时间 用户线程时间 0.06, 系统线程时间 0.31，真正线程时间 0.05 secs
+* 第一次 MinorGC 年轻代堆内存从 64512K 降低到 10236K (年轻代总内存74752K) 老年代堆内存从 64512K 降低到 26418K(老年代总共245760K) 本次GC执行时间 0.0067054 secs
+* Allocation Failure 表示GC原因，分配空间不足
+* Full GC (Ergonomics)
+* [Times: user=0.06 sys=0.31, real=0.05 secs]
+* 这个是CPU时间 用户线程时间 0.06, 系统线程时间 0.31，真正线程时间 0.05 secs
 
 ###### 分析 Heap 堆内存 ######
 + 1. PSYoungGen年轻代 total 1061888K, used 719392K
@@ -81,6 +81,7 @@ PS C:\Git_Hub\JAVA-000\Week_02\src> java -Xmx2g -Xloggc:gc2g.parallel.%p-%t.log 
 ```
 ##### 分析上述结果 #####
 |堆内存大小|共生成对象次数|Log中FullGC次数|
+|:-|:-:|-:|
 |128M|OutOfMemoryError: Java heap space|异常前20次FullGC|
 |512M|执行结束!共生成对象次数:9051|共执行13次FullGC,结束前连续7次FullGC|
 |1G|执行结束!共生成对象次数:13884|共执行5次FullGC|
