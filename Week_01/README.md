@@ -1,8 +1,8 @@
 学习笔记 20201015
 #JVM #
 ##Java 字节码 ##
->###Java bytecode 由单字节(byte)指令组成，理论上最多支持256个操作码(opcode) ###
->根据指令的性质分四类：
+###Java bytecode 由单字节(byte)指令组成，理论上最多支持256个操作码(opcode) ###
+* 根据指令的性质分四类：
 * 1.栈操作指令，包括与局部变量交互的指令
 * 2.程序流程控制指令
 * 3.对象操作指令，包括方法调用指令
@@ -29,7 +29,7 @@
 * 1.启动类加载器(BootstrapClassLoader)
 * 2.扩展类加载器(ExtClassLoader)
 * 3.应用类加载器(AppClassLoader)
-BootstrapClassLoader -> ExtClassLoader -> AppClassLoader -> Custom ClassLoader 1 
+BootstrapClassLoader -> ExtClassLoader -> AppClassLoader -> Custom ClassLoader 1
 
 加载器特点
 * 1.双亲委托
@@ -38,8 +38,32 @@ BootstrapClassLoader -> ExtClassLoader -> AppClassLoader -> Custom ClassLoader 1
 
 ## JVM Xmx参数内存 指定不要高于物理极限内存的70% ##
 
+### JVM 启动参数 ###
+* 以-开头为标准参数，所有的JVM都要实现这些参数，并且向后兼容
+* -D 设置系统属性
+* -X 开头为非标准参数，基本都是创给JVM的，默认JVM实现这些参数的功能，但是并不保证所有JVM都实现满足，且不保证向后兼容。
+  可以使用 java -X 命令查看当前JVM支持的非标准参数
+* -XX 开头为非稳定参数，专门用于控制JVM的行为，跟具体的JVM实现有关，随时可能会在下一个版本取消。
+  -XX:+-Flags 形式，+-是对布尔值进行开关。
+  -XX：key=value 形式，指定某个选项的值。
+### JVM 启动参数 --堆内存 ###
+* -Xmx 指定最大堆内存
+* -Xms 指定堆内存空间的初始大小。专用服务器上需要-Xms和-Xmx一致，否则应用则刚启动可能就有好几个Full GC。两者配置不一致时，堆内存扩容可能导致性能抖动。
+* -Xmn 等价于-XX：NewSize，设置年轻代空间。注意：使用 G1GC时不应该设置该选项。其他场景下可以设置 官方建议 -Xmx的1/2~1/4。
+* -XX:MaxPermSize=size, JDK1.7之前使用。Java8默认允许的Meta空间无限大，此参数无效。
+* -XX:MaxMetaspaceSize=size,Java8默认不限制Meta空间，一般不允许设置该选项。
+* -XX:MaxDirectMemorySize=size,系统可以使用的最大堆外内存，这个参数跟 -Dsun.nio.MaxDirectMemorySize效果相同。
+* -Xss，设置每个线程栈的字节数。例如 -Xss1m 指定线程栈为1MB，等价于-XX:ThreadStackSize=1m。
+
 ## JVM 命令 ###
-* jps 
+##### jps/jinfo 查看Java进程 #####
+##### jstat 查看JVM内部GC相关信息 #####
+##### jmp 查看heap或类占用空间统计 #####
+##### jstack 查看线程信息 #####
+##### jcmd 执行JVM相关分析命令(整合命令) #####
+##### jrunscript/jjs 执行js命令 #####
+
+* jps
 > C:\Git_Hub\JAVA-000>jps
 > 9160 Jps
 > 9404
@@ -81,13 +105,16 @@ JDK 11.0.7
 - jmc 最强大，有飞行记录功能
 - jvisualvm
 - VisualGC IDEA插件
-- jconsole 最简单
+- jconsole 最简单，个人感觉分辨率不好
 
 # GC 的背景与一般原理 #
 - 引用计数：仓库与引用计数：计数为0时，销毁
 - 实际情况复杂一点，因为仓库与仓库之间有关系（引用，相互调用）
   假如 两个对象相互引用，计数永远不为0，形成一种环状。（原理跟死锁一致）
   解决方案：引用跟踪！ 从根对象出发并标记可达对象，不可达的未标记对象销毁。
+- 清除算法：标记-清除(Mark-Sweep)
+- 复制算法：标记-复制算法(Mark-Copy)
+- 整理算法：标记-清除-整理算法(Mark-Sweep-Compact)
 ## 并行GC 和 CMS 的基本原理 都是从根对象出发
 如何做到标记和清除 上百万对象？
 STW，让全世界暂停，然后快照 进行标记
@@ -96,14 +123,24 @@ STW，让全世界暂停，然后快照 进行标记
 老年代(Young-gen)， 年轻代(Old-gen)，新生代(Eden-Space)->(S0, S1)
 每一代回收策略不同，理论上说存活时间越长，回收频率被调用越少
 
-年轻代：复制法
-老年代：整理法（移动对象）
+年轻代：复制法 Minor GC
+老年代：整理法（移动对象） Major GC
+FullGC
 
-
-下面参数控制15代后仍然存活的对象将移动到老年代 
+下面参数控制15代后仍然存活的对象将移动到老年代
 ```
 -XX: +MaxTenuringThreshold=15
 ```
+
+### GC 对比 ###
+|收集器|串行、并行or并发|新生代/老年代|算法|目标|适用场景|
+|Serial|串行|新生代|复制算法|响应速度优先|单CPU环境下的Client模式|
+|Serial|串行|老年代|标记-整理|响应速度优先|单CPU环境下Client模式，CMS的后备预案|
+|ParNew|并行|新生代|复制算法|响应速度优化|多CPU环境时在Server模式下与CMS配合|
+|Parallel|并行|新生代|复制算法|吞吐量优先|后台运算而不需要太多交互的任务|
+|Parallel Old|并行|老年代|标记-整理|吞吐量优先|在后台运算而不需要太多交互的任务|
+|CMS|并发|老年代|标记-清除|响应速度优先|集中在互联网站或B/S系统服务端上的Java应用|
+|G1|并发|both|标记-整理+复制算法|响应速度优先|面向服务端应用，将替代CMS|
 
 ### 选择 GC ROOTS 根对象原则： ###
 - 1. 当前正在执行的方法里的局部变量和输入参数
@@ -461,4 +498,67 @@ llSite;
       #61 avg = \u0001
 InnerClasses:
   public static final #68= #64 of #66;    // Lookup=class java/lang/invoke/MethodHandles$Lookup of class java/lang/invoke/MethodHandles
+```
+
+## 启动一个jar,并且用 jps -lmv查看细节参数，执行jmap -heap <进程pid> 查看细节
+以下是代码示例
+```
+C:\Git_Hub\JAVA-000\Week_02\src>java -jar gateway-server-0.0.1-SNAPSHOT.jar
+
+C:\Git_Hub\JAVA-000>jps -lmv
+8736  exit -Xms128m -Xmx1994m -XX:ReservedCodeCacheSize=240m -XX:+UseConcMarkSweepGC -XX:SoftRefLRUPolicyMSPerMB=50 -ea -XX:CICompilerCount=2 -Dsun.io.useCanonPrefixCache=false -Djdk.http.auth.tunneling.disabledSchemes="" -XX:+HeapD
+umpOnOutOfMemoryError -XX:-OmitStackTraceInFastThrow -Djdk.attach.allowAttachSelf=true -Dkotlinx.coroutines.debug=off -Djdk.module.illegalAccess.silent=true -Djb.vmOptionsFile=C:\Users\Administrator\AppData\Roaming\JetBrains\IdeaIC2
+020.2\idea64.exe.vmoptions -Djava.library.path=C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2020\jbr\\bin;C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2020\jbr\\bin\server -Didea.platform.prefix=Idea -Did
+ea.jre.check=true -Dide.native.launcher=true -Didea.vendor.name=JetBrains -Didea.paths.selector=IdeaIC2020.2 -XX:ErrorFile=C:\Users\Administrator\java_error_in_idea_%p.log -XX:HeapDumpPath=C:\Users\Administrator\java_error_in_idea.h
+prof
+13380 gateway-server-0.0.1-SNAPSHOT.jar
+9916 sun.tools.jps.Jps -lmv -Dapplication.home=C:\Program Files\Java\jdk1.8.0_231 -Xms8m
+
+C:\Git_Hub\JAVA-000>jmap -heap 13380
+Attaching to process ID 13380, please wait...
+Debugger attached successfully.
+Server compiler detected.
+JVM version is 25.231-b11
+
+using thread-local object allocation.
+Parallel GC with 8 thread(s)
+
+Heap Configuration:
+   MinHeapFreeRatio         = 0
+   MaxHeapFreeRatio         = 100
+   MaxHeapSize              = 4183818240 (3990.0MB)
+   NewSize                  = 87031808 (83.0MB)
+   MaxNewSize               = 1394606080 (1330.0MB)
+   OldSize                  = 175112192 (167.0MB)
+   NewRatio                 = 2
+   SurvivorRatio            = 8
+   MetaspaceSize            = 21807104 (20.796875MB)
+   CompressedClassSpaceSize = 1073741824 (1024.0MB)
+   MaxMetaspaceSize         = 17592186044415 MB
+   G1HeapRegionSize         = 0 (0.0MB)
+
+Heap Usage:
+PS Young Generation
+Eden Space:
+   capacity = 198180864 (189.0MB)
+   used     = 11836384 (11.288055419921875MB)
+   free     = 186344480 (177.71194458007812MB)
+   5.9725160951967595% used
+From Space:
+   capacity = 12582912 (12.0MB)
+   used     = 0 (0.0MB)
+   free     = 12582912 (12.0MB)
+   0.0% used
+To Space:
+   capacity = 15204352 (14.5MB)
+   used     = 0 (0.0MB)
+   free     = 15204352 (14.5MB)
+   0.0% used
+PS Old Generation
+   capacity = 167772160 (160.0MB)
+   used     = 20278056 (19.338661193847656MB)
+   free     = 147494104 (140.66133880615234MB)
+   12.086663246154785% used
+
+15760 interned Strings occupying 2094632 bytes.
 ```
