@@ -1,5 +1,10 @@
 学习笔记
 
+本周作业：
+- [分析GC策略](https://github.com/muyifang1/JAVA-000/blob/main/Week_02/%E5%88%86%E6%9E%90%E4%B8%8D%E5%90%8CGC%E7%AD%96%E7%95%A5.md "分析GC策略")
+- [压力测试分析](https://github.com/muyifang1/JAVA-000/tree/main/Week_02/PressureTestHomework "压力测试分析")
+- [HttpClientDemo](https://github.com/muyifang1/JAVA-000/tree/main/Week_02/httpclientdemo "HttpClientDemo")
+
 #### javac 指定UTF-8编码方式 编译一个java文件 ####
 `PS C:\Git_Hub\JAVA-000\Week_02\src> javac -encoding UTF-8 .\GCLogAnalysis.java`
 
