@@ -25,7 +25,7 @@ public class HttpServer01 {
             printWriter.println("HTTP/1.1 200 OK");
             printWriter.println("Content-Type:text/html;charset=utf-8");
             printWriter.println();
-            printWriter.write("hello,nio");
+            printWriter.write("hello,nio! this is 8801 !");
             printWriter.close();
             socket.close();
         } catch (IOException | InterruptedException e) {

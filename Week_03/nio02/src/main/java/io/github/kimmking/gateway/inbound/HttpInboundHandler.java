@@ -1,6 +1,10 @@
 package io.github.kimmking.gateway.inbound;
 
-import io.github.kimmking.gateway.outbound.httpclient4.HttpOutboundHandler;
+import io.github.kimmking.gateway.filter.HttpHeadersFilter;
+import io.github.kimmking.gateway.filter.HttpRequestFilter;
+import io.github.kimmking.gateway.outbound.myhttpclient.MyHttpOutboundHandler;
+import io.github.kimmking.gateway.router.HttpEndpointRouter;
+import io.github.kimmking.gateway.router.MyHttpEndpointRouter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -8,17 +12,32 @@ import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
+/**
+ * 具体InboundHandler
+ *
+ * @author YangQi
+ */
 public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
 
     private static Logger logger = LoggerFactory.getLogger(HttpInboundHandler.class);
-    private final String proxyServer;
-    private HttpOutboundHandler handler;
-    
-    public HttpInboundHandler(String proxyServer) {
-        this.proxyServer = proxyServer;
-        handler = new HttpOutboundHandler(this.proxyServer);
+    private final List<String> serverList;
+    // private HttpOutboundHandler handler;
+
+    private MyHttpOutboundHandler handler;
+    private HttpRequestFilter filter;
+    private HttpEndpointRouter router;
+
+    public HttpInboundHandler(List<String> serverList) {
+        this.serverList = serverList;
+        filter = new HttpHeadersFilter();
+        router = new MyHttpEndpointRouter();
+        // 初始化时绑定需要的outboundHandler
+        // handler = new HttpOutboundHandler(this.proxyServer);
+        handler = new MyHttpOutboundHandler(router.route(this.serverList));
     }
-    
+
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
         ctx.flush();
@@ -34,43 +53,19 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
 //            if (uri.contains("/test")) {
 //                handlerTest(fullRequest, ctx);
 //            }
-    
+
+            /**
+             * 这里可以追加 filter
+             */
+            filter.filter(fullRequest, ctx);
+            // 调用outbandHandler处理，把请求request和封装响应context传入，把结果封装成response
             handler.handle(fullRequest, ctx);
-    
-        } catch(Exception e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             ReferenceCountUtil.release(msg);
         }
     }
-
-//    private void handlerTest(FullHttpRequest fullRequest, ChannelHandlerContext ctx) {
-//        FullHttpResponse response = null;
-//        try {
-//            String value = "hello,kimmking";
-//            response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(value.getBytes("UTF-8")));
-//            response.headers().set("Content-Type", "application/json");
-//            response.headers().setInt("Content-Length", response.content().readableBytes());
-//
-//        } catch (Exception e) {
-//            logger.error("处理测试接口出错", e);
-//            response = new DefaultFullHttpResponse(HTTP_1_1, NO_CONTENT);
-//        } finally {
-//            if (fullRequest != null) {
-//                if (!HttpUtil.isKeepAlive(fullRequest)) {
-//                    ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-//                } else {
-//                    response.headers().set(CONNECTION, KEEP_ALIVE);
-//                    ctx.write(response);
-//                }
-//            }
-//        }
-//    }
-//
-//    @Override
-//    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-//        cause.printStackTrace();
-//        ctx.close();
-//    }
 
 }
