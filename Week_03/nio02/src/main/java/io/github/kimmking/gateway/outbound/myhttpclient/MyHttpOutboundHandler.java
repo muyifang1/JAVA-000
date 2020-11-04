@@ -149,8 +149,16 @@ public class MyHttpOutboundHandler {
             Arrays.asList(endpointResponse.getAllHeaders()).forEach(System.out::println);
             System.out.println("=======================");
             response.headers().set("Content-Type", "application/json");
-            response.headers().setInt("Content-Length"
-                    , Integer.parseInt(endpointResponse.getFirstHeader("Content-Length").getValue()));
+            response.headers().set("nio", fullHttpRequest.headers().get("nio"));
+//            response.headers().setInt("Content-Length"
+//                    , Integer.parseInt(endpointResponse.getFirstHeader("Content-Length").getValue()));
+            response.headers().setInt("Content-Length", 51);
+            // todo
+            // 这个 51 是手算出来的。。。 原Content-length = 36 + （nio: testYangQi）
+
+            System.out.println("=======================");
+            System.out.println("test response headers" + response.headers());
+            System.out.println("=======================");
 
         } catch (IOException e) {
             e.printStackTrace();
