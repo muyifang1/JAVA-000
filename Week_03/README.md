@@ -1,5 +1,9 @@
 学习笔记
 
+本周作业：
+- [实现一个网关](https://github.com/muyifang1/JAVA-000/tree/main/Week_03/nio02 "网关")
+- 实现了filter 和 router 功能，目前是参照HttpClient完成的。
+
 # 2020/10/29 #
 ## 什么是高性能？ ##
 - 1. 高并发用户(Concurent Users)
