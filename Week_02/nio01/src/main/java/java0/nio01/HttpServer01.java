@@ -6,7 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class HttpServer01 {
-    public static void main(String[] args) throws IOException{
+    public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(8801);
         while (true) {
             try {
@@ -17,7 +17,7 @@ public class HttpServer01 {
             }
         }
     }
-    
+
     private static void service(Socket socket) {
         try {
             Thread.sleep(20);
