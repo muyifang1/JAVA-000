@@ -43,16 +43,18 @@ public class HttpInboundServer {
 
         try {
             ServerBootstrap serverBootStrap = new ServerBootstrap();
-            // 参数说明
-            // ChannelOption.SO_BACKLOG 建立连接过程中，未完成握手的连接可以保存多少（Linux和Mac 默认128,win 默认200）
-            // ChannelOption.TCP_NODELAY Nodelay 算法开关(粘包传输)
-            // ChannelOption.SO_KEEPALIVE 保持底层长连接
-            // ChannelOption.SO_REUSEADDR 是否复用地址
-            // ChannelOption.SO_RCVBUF receive 缓冲区大小
-            // ChannelOption.SO_SNDBUF send 缓冲区大小
-            // EpollChannelOption.SO_REUSEPORT 是否复用端口
-            // ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT 指定配置ByteBuffer内存池
 
+            /**
+             *  // 参数说明
+             *  // ChannelOption.SO_BACKLOG 建立连接过程中，未完成握手的连接可以保存多少（Linux和Mac 默认128,win 默认200）
+             *  // ChannelOption.TCP_NODELAY Nodelay 算法开关(粘包传输)
+             *  // ChannelOption.SO_KEEPALIVE 保持底层长连接
+             *  // ChannelOption.SO_REUSEADDR 是否复用地址
+             *  // ChannelOption.SO_RCVBUF receive 缓冲区大小
+             *  // ChannelOption.SO_SNDBUF send 缓冲区大小
+             *  // EpollChannelOption.SO_REUSEPORT 是否复用端口
+             *  // ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT 指定配置ByteBuffer内存池
+             */
             serverBootStrap.option(ChannelOption.SO_BACKLOG, 128)
                     .option(ChannelOption.TCP_NODELAY, true)
                     .option(ChannelOption.SO_KEEPALIVE, true)
